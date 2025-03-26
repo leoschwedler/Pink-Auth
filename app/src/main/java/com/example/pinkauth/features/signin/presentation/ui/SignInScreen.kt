@@ -2,6 +2,7 @@ package com.example.pinkauth.features.signin.presentation.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,8 +19,14 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Divider
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,20 +37,65 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pinkauth.R
 import com.example.pinkauth.commom.components.PrimaryButton
 import com.example.pinkauth.commom.components.PrimaryTextField
 import com.example.pinkauth.commom.theme.Gray
 import com.example.pinkauth.commom.theme.MainGray
 import com.example.pinkauth.commom.theme.Pink
+import com.example.pinkauth.commom.theme.PinkWhite
+import com.example.pinkauth.features.signin.presentation.action.SignInAction
+import com.example.pinkauth.features.signin.presentation.event.SignInEvent
+import com.example.pinkauth.features.signin.presentation.state.SignInState
+import com.example.pinkauth.features.signin.presentation.viewmodel.SignInViewModel
 
 @Composable
-fun SignInScreen() {
-    SignInContent()
+fun SignInScreen(
+    navigateToSignUp: () -> Unit,
+    navigateToHome: () -> Unit,
+    viewModel: SignInViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                SignInEvent.navigateToHome -> {
+                    navigateToHome()
+                }
+
+                SignInEvent.navigateToSignUp -> {
+                    navigateToSignUp()
+                }
+
+                is SignInEvent.showSnackbar -> {
+                    snackbarHostState.showSnackbar(message = event.message)
+                }
+            }
+        }
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        SignInContent(
+            uiState = uiState,
+            onAction = viewModel::onAction
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp)
+        )
+    }
 }
 
 @Composable
-private fun SignInContent() {
+private fun SignInContent(
+    uiState: SignInState,
+    onAction: (SignInAction) -> Unit
+) {
     Box(
         Modifier
             .fillMaxSize()
@@ -76,8 +128,12 @@ private fun SignInContent() {
             )
             Spacer(modifier = Modifier.height(40.dp))
             PrimaryTextField(
-                value = "",
-                onValueChange = {},
+                value = uiState.email,
+                onValueChange = {
+                    onAction(SignInAction.onEmailChange(it))
+                },
+                isError = uiState.isEmailError,
+                isErrorMessage = uiState.isEmailErrorMessage,
                 placeholder = "Email",
                 leadingIcon = Icons.Filled.Email,
                 keyboardType = KeyboardType.Email,
@@ -85,22 +141,28 @@ private fun SignInContent() {
             )
             Spacer(modifier = Modifier.height(24.dp))
             PrimaryTextField(
-                value = "",
-                onValueChange = {},
+                value = uiState.password,
+                onValueChange = {
+                    onAction(SignInAction.onPasswordChange(it))
+                },
+                isError = uiState.isPasswordError,
+                isErrorMessage = uiState.isPasswordErrorMessage,
                 placeholder = "Password",
                 leadingIcon = Icons.Filled.Lock,
                 keyboardType = KeyboardType.Password,
                 imeAction = androidx.compose.ui.text.input.ImeAction.Done
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
-                    selected = true,
+                    selected = uiState.radionButtonState,
                     colors = RadioButtonDefaults.colors(
                         selectedColor = Pink,
-                        unselectedColor = Color.Gray
+                        unselectedColor = PinkWhite
                     ),
-                    onClick = { }
+                    onClick = {
+                        onAction(SignInAction.onRadioButtonChange)
+                    }
                 )
                 Text(text = "Remember Me", fontWeight = FontWeight.Medium, fontSize = 12.sp)
                 Spacer(Modifier.weight(1f))
@@ -113,7 +175,9 @@ private fun SignInContent() {
                 Spacer(Modifier.height(80.dp))
 
             }
-            PrimaryButton(title = "Login", onClick = {}, modifier = Modifier.fillMaxWidth())
+            PrimaryButton(title = "Login", onClick = {
+                onAction(SignInAction.onSubmit)
+            }, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(20.dp))
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -127,7 +191,8 @@ private fun SignInContent() {
                     text = "Sign Up",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = Pink
+                    color = Pink,
+                    modifier = Modifier.clickable { onAction(SignInAction.navigateToSignUp) }
                 )
             }
         }
@@ -137,5 +202,8 @@ private fun SignInContent() {
 @Preview
 @Composable
 private fun SignInPreview() {
-    SignInScreen()
+    SignInScreen(
+        navigateToSignUp = {},
+        navigateToHome = {}
+    )
 }

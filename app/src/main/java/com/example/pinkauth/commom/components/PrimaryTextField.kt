@@ -1,6 +1,7 @@
 package com.example.pinkauth.commom.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -34,62 +35,68 @@ fun PrimaryTextField(
     placeholder: String,
     leadingIcon: ImageVector,
     isError: Boolean = false,
+    isErrorMessage: String? = null,
     keyboardType: KeyboardType,
     imeAction: ImeAction,
     modifier: Modifier = Modifier
 ) {
     var isVisiblePassword by remember { mutableStateOf(false) }
 
-    OutlinedTextField(
-        value = value,
-        modifier = modifier.fillMaxWidth(),
-        onValueChange = onValueChange,
-        singleLine = true,
-        maxLines = 1,
-        colors = OutlinedTextFieldDefaults.colors(
-
-            unfocusedBorderColor = Color.Gray,
-            errorBorderColor = Color.Red,
-            focusedBorderColor = Pink,
-            focusedTrailingIconColor = Color(0xFF626262),
-            unfocusedTrailingIconColor = Color(0xFF626262),),
-        isError = isError,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = keyboardType,
-            imeAction = imeAction
-        ),
-        visualTransformation = if (keyboardType == KeyboardType.Password) {
-            if (isVisiblePassword) {
-                VisualTransformation.None
-            } else {
-
-                PasswordVisualTransformation()
-            }
-        } else {
-            VisualTransformation.None
-        },
-        leadingIcon = {
-            Icon(imageVector = leadingIcon, contentDescription = null)
-        },
-        shape = MaterialTheme.shapes.small,
-        trailingIcon = {
-            if (keyboardType == KeyboardType.Password && value.isNotBlank()) {
-                val icon = if (isVisiblePassword) {
-                    R.drawable.ic_visibility_off
+    Column {
+        OutlinedTextField(
+            value = value,
+            modifier = modifier.fillMaxWidth(),
+            onValueChange = onValueChange,
+            singleLine = true,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color(0xFF626262)),
+            maxLines = 1,
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedBorderColor = Color.Gray,
+                errorBorderColor = Color.Red,
+                focusedBorderColor = Pink,
+                focusedTrailingIconColor = Color(0xFF626262),
+                unfocusedTrailingIconColor = Color(0xFF626262),),
+            isError = isError,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType,
+                imeAction = imeAction
+            ),
+            visualTransformation = if (keyboardType == KeyboardType.Password) {
+                if (isVisiblePassword) {
+                    VisualTransformation.None
                 } else {
-                    R.drawable.ic_visibility
-                }
 
-                Icon(
-                    painter = painterResource(icon),
-                    contentDescription = null,
-                    modifier = Modifier.clickable {
-                        isVisiblePassword = !isVisiblePassword
-                    })
-            }
-        },
-        placeholder = { Text(text = placeholder) },
-    )
+                    PasswordVisualTransformation()
+                }
+            } else {
+                VisualTransformation.None
+            },
+            leadingIcon = {
+                Icon(imageVector = leadingIcon, contentDescription = null)
+            },
+            shape = MaterialTheme.shapes.small,
+            trailingIcon = {
+                if (keyboardType == KeyboardType.Password && value.isNotBlank()) {
+                    val icon = if (isVisiblePassword) {
+                        R.drawable.ic_visibility_off
+                    } else {
+                        R.drawable.ic_visibility
+                    }
+
+                    Icon(
+                        painter = painterResource(icon),
+                        contentDescription = null,
+                        modifier = Modifier.clickable {
+                            isVisiblePassword = !isVisiblePassword
+                        })
+                }
+            },
+            placeholder = { Text(text = placeholder) },
+        )
+        if (isErrorMessage != null){
+            Text(text = isErrorMessage, color = Color.Red)
+        }
+    }
 }
 
 @Preview

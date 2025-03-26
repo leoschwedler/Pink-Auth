@@ -8,19 +8,38 @@ import com.example.pinkauth.features.signin.presentation.ui.SignInScreen
 import com.example.pinkauth.features.signup.presentation.ui.SignUpScreen
 import com.example.pinkauth.features.welcome.presentation.ui.WelcomeScreen
 import com.example.pinkauth.navigation.routes.AuthRoute
+import com.example.pinkauth.navigation.routes.MainNavRoute
 
 @Composable
 fun AuthNavHost() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = AuthRoute.WelcomeRoute) {
         composable<AuthRoute.WelcomeRoute> {
-            WelcomeScreen()
+            WelcomeScreen(
+                navigateToSignUp = {
+                    navController.navigate(AuthRoute.SignInRoute)
+                }
+            )
         }
         composable<AuthRoute.SignUpRoute> {
-            SignUpScreen()
+            SignUpScreen(
+                navigateToSignIn = {
+                    navController.navigate(AuthRoute.SignInRoute)
+                },
+                navigateToHome = {
+                    navController.navigate(AuthRoute.SignInRoute)
+                })
         }
         composable<AuthRoute.SignInRoute> {
-            SignInScreen()
+            SignInScreen(
+                navigateToSignUp = {
+                    navController.navigate(AuthRoute.SignUpRoute)
+                },
+                navigateToHome = {
+                    navController.navigate(MainNavRoute.MainHomeRoute)
+                }
+            )
         }
+        toMainNavHost(navController = navController)
     }
 }

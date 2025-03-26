@@ -2,6 +2,7 @@ package com.example.pinkauth.features.welcome.presentation.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,12 +30,16 @@ import com.example.pinkauth.commom.theme.Gray
 import com.example.pinkauth.commom.theme.MainGray
 
 @Composable
-fun WelcomeScreen() {
-    WelcomeContent()
+fun WelcomeScreen(navigateToSignUp: () -> Unit) {
+    WelcomeContent(
+        navigateToSignUp = navigateToSignUp
+    )
 }
 
 @Composable
-private fun WelcomeContent() {
+private fun WelcomeContent(
+    navigateToSignUp: () -> Unit
+) {
     Box(
         Modifier
             .fillMaxSize()
@@ -68,11 +73,23 @@ private fun WelcomeContent() {
             )
 
         }
-        Box(modifier = Modifier.align(Alignment.BottomEnd).padding(end = 24.dp, bottom = 60.dp)){
-            Row (verticalAlignment = Alignment.CenterVertically){
-                Text(text = "Continue", color = Gray, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Box(modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(end = 24.dp, bottom = 60.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Continue",
+                    color = Gray,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
                 Spacer(Modifier.width(8.dp))
-                Image(painter = painterResource(R.drawable.arrow_right), contentDescription = null, modifier = Modifier.size(36.dp))
+                Image(
+                    painter = painterResource(R.drawable.arrow_right),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clickable { navigateToSignUp() })
             }
         }
     }
@@ -81,5 +98,7 @@ private fun WelcomeContent() {
 @Preview
 @Composable
 private fun WelcomePreview() {
-    WelcomeScreen()
+    WelcomeScreen(
+        {}
+    )
 }
