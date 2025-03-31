@@ -57,6 +57,16 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.8.8")
     //Icons Material3
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    //KTOR
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.android)
+    implementation(libs.ktor.client.websockets)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.resources)
+    implementation(libs.ktor.client.auth)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.logging)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

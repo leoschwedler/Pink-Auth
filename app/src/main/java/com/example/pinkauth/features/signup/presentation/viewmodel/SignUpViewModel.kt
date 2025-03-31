@@ -2,13 +2,15 @@ package com.example.pinkauth.features.signup.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pinkauth.commom.data.network.model.NetworkException
+import com.example.pinkauth.commom.data.repository.AuthRepository
+import com.example.pinkauth.commom.domain.SignupDomain
 import com.example.pinkauth.commom.validator.FormValidator
 import com.example.pinkauth.features.signup.presentation.action.SignUpAction
 import com.example.pinkauth.features.signup.presentation.event.SignUpEvent
 import com.example.pinkauth.features.signup.presentation.state.SignUpState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -17,7 +19,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SignUpViewModel @Inject constructor(private val formValidator: FormValidator<SignUpState>) :
+class SignUpViewModel @Inject constructor(
+    private val formValidator: FormValidator<SignUpState>,
+    private val authRepository: AuthRepository
+) :
     ViewModel() {
 
     private val _uiState = MutableStateFlow(SignUpState())
@@ -49,6 +54,7 @@ class SignUpViewModel @Inject constructor(private val formValidator: FormValidat
                     _uiEvent.send(SignUpEvent.navigateToSignIn)
                 }
             }
+
             SignUpAction.onSubmit -> {
                 onSubmit()
             }
@@ -59,9 +65,44 @@ class SignUpViewModel @Inject constructor(private val formValidator: FormValidat
         if (isValidForm()) {
             viewModelScope.launch {
                 _uiState.update { it.copy(isLoading = true) }
-                _uiEvent.send(SignUpEvent.showSnackbar(message = "✅ Your account has been successfully created!"))
-                delay(1000)
-                _uiEvent.send(SignUpEvent.navigateToHome)
+                val request = SignupDomain(
+                    firstName = "Leo",
+                    lastName = "Schwedler",
+                    password = _uiState.value.password,
+                    profilePictureId = null,
+                    username = _uiState.value.email
+                )
+                val result = authRepository.signup(request).fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _uiEvent.send(SignUpEvent.showSnackbar(message = "✅ Your account has been successfully created!"))
+                        _uiEvent.send(SignUpEvent.navigateToHome)
+                    },
+                    onFailure = {
+                        if (it is NetworkException.ApiException) {
+                            when (it.statusCode) {
+                                400 -> {
+                                    _uiState.update { it.copy(isLoading = false) }
+                                    _uiEvent.send(SignUpEvent.showSnackbar(message = "❌ Invalid email or password"))
+                                }
+
+                                409 -> {
+                                    _uiState.update { it.copy(isLoading = false) }
+                                    _uiEvent.send(SignUpEvent.showSnackbar(message = "❌ User already exists"))
+                                }
+
+                                else -> {
+                                    _uiState.update { it.copy(isLoading = false) }
+                                    _uiEvent.send(SignUpEvent.showSnackbar(message = "❌ Something went wrong"))
+                                }
+
+                            }
+                        } else {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _uiEvent.send(SignUpEvent.showSnackbar(message = "❌ Something went wrong Unknown error"))
+                        }
+                    }
+                )
             }
         }
     }
@@ -71,4 +112,5 @@ class SignUpViewModel @Inject constructor(private val formValidator: FormValidat
         _uiState.update { validateState }
         return !validateState.hasError
     }
+
 }
