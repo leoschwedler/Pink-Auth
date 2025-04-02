@@ -4,36 +4,54 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.pinkauth.MainActivity
 import com.example.pinkauth.features.signin.presentation.ui.SignInScreen
 import com.example.pinkauth.features.signup.presentation.ui.SignUpScreen
+import com.example.pinkauth.features.splash.presentation.ui.SplashScreen
 import com.example.pinkauth.features.welcome.presentation.ui.WelcomeScreen
 import com.example.pinkauth.navigation.routes.AuthRoute
+import com.example.pinkauth.navigation.routes.AuthRoute.*
 import com.example.pinkauth.navigation.routes.MainNavRoute
 
 @Composable
 fun AuthNavHost() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = AuthRoute.WelcomeRoute) {
-        composable<AuthRoute.WelcomeRoute> {
-            WelcomeScreen(
+    val activity = navController.context as MainActivity
+    NavHost(navController = navController, startDestination = SplashRoute) {
+
+        composable<SplashRoute> {
+            SplashScreen(
                 navigateToSignUp = {
-                    navController.navigate(AuthRoute.SignInRoute)
+                    navController.navigate(SignUpRoute)
+                },
+                navigateToHome = {
+                    navController.navigate(MainNavRoute.MainHomeRoute)
+                },
+                onClosesApp = {
+                    activity.finish()
                 }
             )
         }
-        composable<AuthRoute.SignUpRoute> {
+        composable<WelcomeRoute> {
+            WelcomeScreen(
+                navigateToSignUp = {
+                    navController.navigate(SignInRoute)
+                }
+            )
+        }
+        composable<SignUpRoute> {
             SignUpScreen(
                 navigateToSignIn = {
-                    navController.navigate(AuthRoute.SignInRoute)
+                    navController.navigate(SignInRoute)
                 },
                 navigateToHome = {
-                    navController.navigate(AuthRoute.SignInRoute)
+                    navController.navigate(SignInRoute)
                 })
         }
-        composable<AuthRoute.SignInRoute> {
+        composable<SignInRoute> {
             SignInScreen(
                 navigateToSignUp = {
-                    navController.navigate(AuthRoute.SignUpRoute)
+                    navController.navigate(SignUpRoute)
                 },
                 navigateToHome = {
                     navController.navigate(MainNavRoute.MainHomeRoute)

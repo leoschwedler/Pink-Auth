@@ -2,11 +2,13 @@ package com.example.pinkauth.features.signin.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pinkauth.commom.data.network.model.NetworkException
+import com.example.pinkauth.commom.data.repository.AuthRepository
+import com.example.pinkauth.commom.domain.SigninDomain
 import com.example.pinkauth.commom.validator.FormValidator
 import com.example.pinkauth.features.signin.presentation.action.SignInAction
 import com.example.pinkauth.features.signin.presentation.event.SignInEvent
 import com.example.pinkauth.features.signin.presentation.state.SignInState
-import com.example.pinkauth.features.signup.presentation.event.SignUpEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -18,7 +20,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SignInViewModel @Inject constructor(private val formValidator: FormValidator<SignInState>) :
+class SignInViewModel @Inject constructor(
+    private val formValidator: FormValidator<SignInState>,
+    private val authRepository: AuthRepository
+) :
     ViewModel() {
 
     private val _uiState = MutableStateFlow(SignInState())
@@ -57,9 +62,23 @@ class SignInViewModel @Inject constructor(private val formValidator: FormValidat
         if (isValidForm()) {
             viewModelScope.launch {
                 _uiState.update { it.copy(isLoading = true) }
-                _uiEvent.send(SignInEvent.showSnackbar(message = "✅ Login successful. You can now access your account"))
-                delay(1000)
-                _uiEvent.send(SignInEvent.navigateToHome)
+                val request = SigninDomain(
+                    username = _uiState.value.email,
+                    password = _uiState.value.password
+                )
+                authRepository.signin(request).fold(
+                    onSuccess = {
+                        _uiEvent.send(SignInEvent.showSnackbar(message = "✅ Login successful. You can now access your account"))
+                        _uiEvent.send(SignInEvent.navigateToHome)
+                    },
+                    onFailure = { exception ->
+                        if (exception is NetworkException.ApiException && exception.statusCode == 401) {
+                            _uiEvent.send(SignInEvent.showSnackbar(message = "❌ Invalid email or password"))
+                        } else {
+                            _uiEvent.send(SignInEvent.showSnackbar(message = "❌ Something went wrong"))
+                        }
+                    }
+                )
             }
         }
     }
@@ -70,3 +89,4 @@ class SignInViewModel @Inject constructor(private val formValidator: FormValidat
         return !validateForm.hasError
     }
 }
+

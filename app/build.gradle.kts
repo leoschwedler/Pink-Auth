@@ -43,11 +43,9 @@ android {
 }
 
 dependencies {
-
-
-    //KOTLIN SERIALIZATION
+    //  KOTLIN SERIALIZATION
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    //COIL
+    //  COIL
     implementation("io.coil-kt:coil-compose:2.6.0")
     // DAGGER HILT
     implementation("com.google.dagger:hilt-android:2.51.1")
@@ -55,9 +53,11 @@ dependencies {
     ksp("com.google.dagger:hilt-android-compiler:2.51.1")
     // NAVIGATION COMPOSE
     implementation("androidx.navigation:navigation-compose:2.8.8")
-    //Icons Material3
+    //  ICONS MATERIAL3
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
-    //KTOR
+    // PREFERENCES DATASTORE
+    implementation("androidx.datastore:datastore-preferences:1.1.4")
+    //  KTOR
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.android)
